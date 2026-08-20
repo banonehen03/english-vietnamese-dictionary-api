@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Từ Điển Anh - Việt</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        input[type="text"] { width: 70%; padding: 10px; font-size: 16px; }
+        button { padding: 10px 15px; font-size: 16px; cursor: pointer; }
+        #result { margin-top: 20px; border-top: 1px solid #ccc; padding-top: 15px; }
+        .meaning-item { margin-bottom: 8px; }
+        .pos { font-weight: bold; color: #d9534f; }
+    </style>
+</head>
+<body>
+    <h2>Tra Từ Điển Anh - Việt</h2>
+    <div>
+        <input type="text" id="keyword" placeholder="Nhập từ cần tra (ví dụ: run, developer)...">
+        <button onclick="lookupWord()">Tra cứu</button>
+    </div>
+    <div id="result"></div>
+
+    <script>
+        async function lookupWord() {
+            const word = document.getElementById('keyword').value.trim();
+            const resultDiv = document.getElementById('result');
+            if (!word) return;
+
+            resultDiv.innerHTML = 'Đang tra cứu...';
+
+            try {
+                const res = await fetch(`lookup.php?keyword=${encodeURIComponent(word)}`);
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    let html = `<h3>${data.data.word}</h3>`;
+                    
+                    if (data.data.pronunciations.length > 0) {
+                        html += `<p><em>Phiên âm: ${data.data.pronunciations.map(p => p.ipa).join(', ')}</em></p>`;
+                    }
+
+                    html += `<h4>Định nghĩa:</h4><ul>`;
+                    data.data.definitions.forEach(def => {
+                        html += `<li class="meaning-item"><span class="pos">[${def.pos || 'N/A'}]</span> ${def.meaning}</li>`;
+                    });
+                    html += `</ul>`;
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.innerHTML = `<p style="color: red;">${data.message}</p>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<p style="color: red;">Lỗi kết nối API</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
